@@ -15,14 +15,16 @@ RUN apk --no-cache add openssl ca-certificates wget && \
 WORKDIR /opt/verdaccio-build
 COPY . .
 
-RUN npm config set npmRegistryServer $VERDACCIO_BUILD_REGISTRY && \
-    npm config set enableProgressBars true && \
-    npm config set enableTelemetry true && \
-    npm config set enableGlobalCache false && \
-    npm install && \
-    npm code:docker-build && \
-    npm cache clean && \
-    npm workspaces focus --production
+RUN npm install --global yarn
+
+RUN yarn config set npmRegistryServer $VERDACCIO_BUILD_REGISTRY && \
+    yarn config set enableProgressBars true && \
+    yarn config set enableTelemetry true && \
+    yarn config set enableGlobalCache false && \
+    yarn install && \
+    yarn code:docker-build && \
+    yarn cache clean && \
+    yarn workspaces focus --production
 
 FROM nodesource/nsolid:fermium-alpine-4.7.3
 LABEL maintainer="https://github.com/verdaccio/verdaccio"
@@ -58,7 +60,7 @@ VOLUME /verdaccio/storage
 
 ENTRYPOINT ["uid_entrypoint"]
 
-ENV NSOLID_APPNAME=accounts-api
+ENV NSOLID_APPNAME=verdaccio
 ENV NSOLID_COMMAND=relay.dogfood.nodesource.io
 
-CMD node -r ./.pnp.js $VERDACCIO_APPDIR/bin/verdaccio --config /verdaccio/conf/config.yaml --listen $VERDACCIO_PROTOCOL://0.0.0.0:$VERDACCIO_PORT
+CMD nsolid -r ./.pnp.js $VERDACCIO_APPDIR/bin/verdaccio --config /verdaccio/conf/config.yaml --listen $VERDACCIO_PROTOCOL://0.0.0.0:$VERDACCIO_PORT
